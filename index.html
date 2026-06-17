@@ -444,16 +444,61 @@
         text-transform: uppercase;
       }
 
-      .gold-seats-grid {
+      .gold-seats-grid,
+      .empresarial-seats-grid {
         display: grid;
         grid-template-columns: repeat(16, 1fr);
         gap: 8px;
         justify-items: center;
       }
 
+      .camarote-empresarial-section {
+        background: rgba(139, 92, 246, 0.03);
+        border: 1px solid rgba(139, 92, 246, 0.1);
+        border-radius: 20px;
+        padding: 1.5rem;
+        position: relative;
+      }
+
+      .purple-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--color-purple);
+        text-align: center;
+        margin-bottom: 1.25rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
       @media (max-width: 800px) {
-        .gold-seats-grid {
+        .gold-seats-grid,
+        .empresarial-seats-grid {
           grid-template-columns: repeat(8, 1fr);
+        }
+      }
+
+      @media (max-width: 600px) {
+        body {
+          padding: 1rem;
+        }
+        .event-board {
+          padding: 1.5rem 1rem;
+        }
+        .arena-map {
+          gap: 1.5rem;
+        }
+        .camarote-gold-section,
+        .camarote-empresarial-section {
+          padding: 1rem;
+        }
+        .gold-seats-grid,
+        .empresarial-seats-grid {
+          gap: 6px;
+        }
+        .seat {
+          width: 25px;
+          height: 25px;
+          font-size: 0.6rem;
         }
       }
 
@@ -1003,40 +1048,9 @@
               <div class="gold-seats-grid" id="grid-gold"></div>
             </div>
 
-            <div
-              class="camarote-empresarial-section"
-              style="
-                background: rgba(139, 92, 246, 0.03);
-                border: 1px solid rgba(139, 92, 246, 0.1);
-                border-radius: 20px;
-                padding: 1.5rem;
-                position: relative;
-              "
-            >
-              <h4
-                class="purple-title"
-                style="
-                  font-size: 0.8rem;
-                  font-weight: 700;
-                  color: var(--color-purple);
-                  text-align: center;
-                  margin-bottom: 1.25rem;
-                  letter-spacing: 2px;
-                  text-transform: uppercase;
-                "
-              >
-                Camarote Empresarial
-              </h4>
-              <div
-                class="empresarial-seats-grid"
-                id="grid-empresarial"
-                style="
-                  display: grid;
-                  grid-template-columns: repeat(16, 1fr);
-                  gap: 8px;
-                  justify-items: center;
-                "
-              ></div>
+            <div class="camarote-empresarial-section">
+              <h4 class="purple-title">Camarote Empresarial</h4>
+              <div class="empresarial-seats-grid" id="grid-empresarial"></div>
             </div>
 
             <div class="arena-coberta-box">
