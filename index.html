@@ -1,0 +1,1723 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FACITA 2026 - Reserva de Assentos</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <style>
+      /* Design Tokens & Theme Variables */
+      :root {
+        --bg-main: #0b0a0f;
+        --bg-card: rgba(20, 19, 26, 0.75);
+        --bg-card-hover: rgba(30, 28, 38, 0.9);
+        --border-color: rgba(255, 255, 255, 0.08);
+
+        --color-gold: #d4af37;
+        --color-gold-hover: #f3e5ab;
+        --color-gold-rgb: 212, 175, 55;
+
+        --color-blue: #2a52be;
+        --color-blue-hover: #4169e1;
+        --color-blue-rgb: 42, 82, 190;
+
+        --color-purple: #8b5cf6;
+        --color-purple-hover: #a78bfa;
+
+        --color-green: #10b981;
+        --color-red: #ef4444;
+        --color-cyan: #06b6d4;
+        --color-text-primary: #ffffff;
+        --color-text-secondary: #9ca3af;
+
+        --font-display: "Outfit", sans-serif;
+        --font-sans: "Inter", sans-serif;
+
+        --glass-blur: 16px;
+        --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* Base Reset & Styling */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        user-select: none;
+      }
+
+      body {
+        background-color: var(--bg-main);
+        color: var(--color-text-primary);
+        font-family: var(--font-sans);
+        min-height: 100vh;
+        overflow-x: hidden;
+        background-image:
+          radial-gradient(
+            circle at 10% 20%,
+            rgba(42, 82, 190, 0.15) 0%,
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 90% 80%,
+            rgba(212, 175, 55, 0.12) 0%,
+            transparent 45%
+          );
+        background-attachment: fixed;
+        padding: 2rem;
+      }
+
+      /* Scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+
+      /* Container Layout */
+      .app-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 2rem;
+      }
+
+      @media (max-width: 1100px) {
+        .app-container {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Sidebar Info & Stats */
+      .sidebar {
+        background: var(--bg-card);
+        backdrop-filter: blur(var(--glass-blur));
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        height: fit-content;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      }
+
+      .logo-container {
+        text-align: center;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 1.5rem;
+      }
+
+      .logo-title {
+        font-family: var(--font-display);
+        font-size: 3rem;
+        font-weight: 800;
+        letter-spacing: 2px;
+        background: linear-gradient(
+          135deg,
+          #ffffff 30%,
+          var(--color-gold) 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1.1;
+      }
+
+      .logo-subtitle {
+        font-family: var(--font-display);
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: var(--color-gold);
+        letter-spacing: 4px;
+        margin-top: 0.25rem;
+      }
+
+      /* Stats Cards */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+
+      .stat-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        transition: var(--transition-smooth);
+      }
+
+      .stat-card:hover {
+        background: rgba(255, 255, 255, 0.05);
+        transform: translateY(-2px);
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .stat-value {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+
+      .stat-value.gold {
+        color: var(--color-gold);
+      }
+      .stat-value.blue {
+        color: var(--color-blue-hover);
+      }
+      .stat-value.green {
+        color: var(--color-green);
+      }
+
+      /* Legend */
+      .legend-section {
+        border-top: 1px solid var(--border-color);
+        padding-top: 1.5rem;
+      }
+
+      .legend-title {
+        font-size: 0.9rem;
+        color: var(--color-text-secondary);
+        margin-bottom: 1rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+
+      .legend-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--color-text-secondary);
+      }
+
+      .legend-icon {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+
+      .legend-icon.gold-avail {
+        border: 2px solid var(--color-gold);
+        background: rgba(212, 175, 55, 0.1);
+      }
+      .legend-icon.blue-avail {
+        border: 2px solid var(--color-blue-hover);
+        background: rgba(42, 82, 190, 0.1);
+      }
+      .legend-icon.purple-avail {
+        border: 2px solid var(--color-purple);
+        background: rgba(139, 92, 246, 0.1);
+      }
+      .legend-icon.booked {
+        background: #f97316;
+        border: 2px solid #f97316;
+      }
+      .legend-icon.paid {
+        background: var(--color-green);
+        border: 2px solid var(--color-green);
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+      }
+      .legend-icon.selected {
+        background: var(--color-cyan);
+        border: 2px solid var(--color-cyan);
+        box-shadow: 0 0 8px var(--color-cyan);
+      }
+
+      /* Actions */
+      .actions-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: auto;
+      }
+
+      .btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--color-text-primary);
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 600;
+        font-family: var(--font-sans);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: var(--transition-smooth);
+      }
+
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-1px);
+      }
+
+      .btn-danger {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #ffa3a3;
+      }
+
+      .btn-danger:hover {
+        background: rgba(239, 68, 68, 0.3);
+        border-color: var(--color-red);
+      }
+
+      /* Main Event Arena Board */
+      .event-board {
+        background: var(--bg-card);
+        backdrop-filter: blur(var(--glass-blur));
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        position: relative;
+      }
+
+      .board-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 1rem;
+      }
+
+      .board-title {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+
+      .board-subtitle {
+        font-size: 0.85rem;
+        color: var(--color-text-secondary);
+      }
+
+      /* Map Grid Layout */
+      .arena-map {
+        display: grid;
+        grid-template-columns: minmax(260px, auto) 1fr;
+        gap: 2rem;
+        position: relative;
+      }
+
+      @media (max-width: 900px) {
+        .arena-map {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Stage Area (Palco) */
+      .stage-side {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .stage-box {
+        background: linear-gradient(180deg, #2d2c35 0%, #1a1921 100%);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        height: 380px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
+      }
+
+      .stage-box::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--color-gold);
+        box-shadow: 0 0 10px var(--color-gold);
+        border-radius: 12px 12px 0 0;
+      }
+
+      .stage-text {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 6px;
+        writing-mode: vertical-lr;
+        text-orientation: mixed;
+        transform: rotate(180deg);
+        color: var(--color-text-secondary);
+        opacity: 0.6;
+      }
+
+      /* Camarote Front A & B (Blue) */
+      .camarote-front {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 1rem;
+      }
+
+      .camarote-front-title {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        text-align: center;
+        margin-bottom: 0.75rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .front-seats-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 6px;
+        justify-items: center;
+      }
+
+      /* Main Center & Top Area */
+      .main-arena-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+
+      /* Camarote Gold Grid (Top section) */
+      .camarote-gold-section {
+        background: rgba(212, 175, 55, 0.03);
+        border: 1px solid rgba(212, 175, 55, 0.1);
+        border-radius: 20px;
+        padding: 1.5rem;
+        position: relative;
+      }
+
+      .gold-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--color-gold);
+        text-align: center;
+        margin-bottom: 1.25rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      .gold-seats-grid {
+        display: grid;
+        grid-template-columns: repeat(16, 1fr);
+        gap: 8px;
+        justify-items: center;
+      }
+
+      @media (max-width: 800px) {
+        .gold-seats-grid {
+          grid-template-columns: repeat(8, 1fr);
+        }
+      }
+
+      /* Arena Coberta (Middle big box) */
+      .arena-coberta-box {
+        background: rgba(139, 115, 85, 0.15);
+        border: 2px dashed rgba(139, 115, 85, 0.3);
+        border-radius: 20px;
+        height: 280px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        transition: var(--transition-smooth);
+      }
+
+      .arena-coberta-box::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(139, 115, 85, 0.1),
+          transparent
+        );
+        pointer-events: none;
+      }
+
+      .arena-coberta-text {
+        font-family: var(--font-display);
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: 4px;
+        color: rgba(255, 255, 255, 0.35);
+        text-transform: uppercase;
+        text-align: center;
+      }
+
+      /* Seat Element Styling */
+      .seat {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+      }
+
+      /* Gold Seat Theme */
+      .seat.type-gold {
+        border: 2px solid var(--color-gold);
+        color: var(--color-gold);
+        background: rgba(212, 175, 55, 0.08);
+      }
+      .seat.type-gold:hover {
+        background: rgba(212, 175, 55, 0.25);
+        box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+        transform: scale(1.15);
+      }
+
+      /* Blue Seat Theme */
+      .seat.type-blue {
+        border: 2px solid var(--color-blue-hover);
+        color: var(--color-blue-hover);
+        background: rgba(42, 82, 190, 0.08);
+      }
+      .seat.type-blue:hover {
+        background: rgba(42, 82, 190, 0.25);
+        box-shadow: 0 0 10px rgba(42, 82, 190, 0.4);
+        transform: scale(1.15);
+      }
+
+      /* Purple Seat Theme (Empresarial) */
+      .seat.type-purple {
+        border: 2px solid var(--color-purple);
+        color: var(--color-purple);
+        background: rgba(139, 92, 246, 0.08);
+      }
+      .seat.type-purple:hover {
+        background: rgba(139, 92, 246, 0.25);
+        box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+        transform: scale(1.15);
+      }
+
+      /* Booked / Sold State (Unpaid/Pending) */
+      .seat.status-booked {
+        background: #f97316 !important;
+        border-color: #f97316 !important;
+        color: #ffffff !important;
+        box-shadow: none !important;
+      }
+      .seat.status-booked:hover {
+        transform: scale(1.15);
+        box-shadow: 0 0 12px rgba(249, 115, 22, 0.6) !important;
+      }
+
+      /* Paid State */
+      .seat.status-paid {
+        background: var(--color-green) !important;
+        border-color: var(--color-green) !important;
+        color: #ffffff !important;
+        box-shadow: none !important;
+      }
+      .seat.status-paid:hover {
+        transform: scale(1.15);
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.6) !important;
+      }
+
+      /* Selected State */
+      .seat.status-selected {
+        background: var(--color-cyan) !important;
+        border-color: var(--color-cyan) !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 12px var(--color-cyan) !important;
+        animation: pulse-cyan 1.5s infinite alternate;
+      }
+
+      @keyframes pulse-cyan {
+        0% {
+          transform: scale(1);
+        }
+        100% {
+          transform: scale(1.1);
+        }
+      }
+
+      /* Popover Styling (Custom Hover tooltip) */
+      .popover {
+        position: absolute;
+        background: rgba(15, 14, 22, 0.95);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 1rem;
+        width: 250px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(10px);
+        transition:
+          opacity 0.2s ease,
+          transform 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .popover.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .popover-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .popover-seat-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+        text-transform: uppercase;
+      }
+
+      .popover-seat-badge.gold {
+        background: rgba(212, 175, 55, 0.2);
+        color: var(--color-gold);
+        border: 1px solid rgba(212, 175, 55, 0.3);
+      }
+
+      .popover-seat-badge.blue {
+        background: rgba(42, 82, 190, 0.2);
+        color: #89a8ff;
+        border: 1px solid rgba(42, 82, 190, 0.3);
+      }
+
+      .popover-seat-badge.purple {
+        background: rgba(139, 92, 246, 0.2);
+        color: #c084fc;
+        border: 1px solid rgba(139, 92, 246, 0.3);
+      }
+
+      .popover-title {
+        font-family: var(--font-display);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #ffffff;
+      }
+
+      .popover-detail {
+        font-size: 0.8rem;
+        color: var(--color-text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .popover-detail i {
+        width: 14px;
+        color: var(--color-gold);
+      }
+
+      /* Modal Overlay & Modal box */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(12px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        opacity: 0;
+        pointer-events: none;
+        transition: var(--transition-smooth);
+      }
+
+      .modal-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .modal {
+        background: #14131a;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        width: 100%;
+        max-width: 480px;
+        padding: 2.5rem;
+        position: relative;
+        transform: scale(0.9);
+        transition: var(--transition-smooth);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      }
+
+      .modal-overlay.active .modal {
+        transform: scale(1);
+      }
+
+      .modal-close {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: none;
+        border: none;
+        color: var(--color-text-secondary);
+        font-size: 1.25rem;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+      }
+
+      .modal-close:hover {
+        color: #ffffff;
+      }
+
+      .modal-header {
+        margin-bottom: 2rem;
+      }
+
+      .modal-title {
+        font-family: var(--font-display);
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .modal-subtitle {
+        font-size: 0.9rem;
+        color: var(--color-text-secondary);
+      }
+
+      /* Form Controls */
+      .form-group {
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+      }
+
+      .form-input {
+        width: 100%;
+        min-width: 0;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 0.8rem 1rem;
+        color: #ffffff;
+        font-family: var(--font-sans);
+        font-size: 16px;
+        transition: var(--transition-smooth);
+      }
+
+      .form-input::placeholder {
+        color: #6b7280;
+        opacity: 0.85;
+      }
+
+      .form-input:focus {
+        outline: none;
+        border-color: var(--color-gold);
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25);
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .btn-submit {
+        background: linear-gradient(135deg, var(--color-gold) 0%, #b8860b 100%);
+        color: #000000;
+        font-weight: 700;
+        border: none;
+        width: 100%;
+        padding: 1rem;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-family: var(--font-sans);
+        transition: var(--transition-smooth);
+        box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        margin-top: 1rem;
+      }
+
+      .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
+        filter: brightness(1.1);
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--color-text-secondary);
+        width: 100%;
+        padding: 1rem;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        font-family: var(--font-sans);
+        transition: var(--transition-smooth);
+      }
+
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #ffffff;
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .btn-danger-outline {
+        background: rgba(239, 68, 68, 0.04);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #ffa3a3;
+        width: 100%;
+        padding: 1rem;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        font-family: var(--font-sans);
+        transition: var(--transition-smooth);
+      }
+
+      .btn-danger-outline:hover {
+        background: rgba(239, 68, 68, 0.12);
+        border-color: var(--color-red);
+        color: #ffffff;
+      }
+
+      /* Toast Notifications */
+      .toast {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background: rgba(20, 19, 26, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        transform: translateY(100px);
+        opacity: 0;
+        transition: var(--transition-smooth);
+        z-index: 3000;
+      }
+
+      .toast.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      .toast.success i {
+        color: var(--color-green);
+      }
+      .toast.info i {
+        color: var(--color-blue-hover);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <aside class="sidebar">
+        <div class="logo-container">
+          <h1 class="logo-title">FACITA</h1>
+          <div class="logo-subtitle">2026</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Total Assentos</span>
+            <span class="stat-value" id="stat-total">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Disponíveis</span>
+            <span class="stat-value green" id="stat-available">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Reservados</span>
+            <span class="stat-value blue" id="stat-booked">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Ocupação %</span>
+            <span class="stat-value gold" id="stat-occupancy">0%</span>
+          </div>
+        </div>
+
+        <div class="legend-section">
+          <h3 class="legend-title">Legenda de Setores</h3>
+          <div class="legend-list">
+            <div class="legend-item">
+              <span class="legend-icon gold-avail"></span>
+              <span>Camarote Gold (Disponível)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-icon blue-avail"></span>
+              <span>Camarote Front (Disponível)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-icon purple-avail"></span>
+              <span>Camarote Empresarial (Disponível)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-icon selected"></span>
+              <span>Seu Assento Selecionado</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-icon booked"></span>
+              <span>Reserva Pendente</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-icon paid"></span>
+              <span>Reserva Confirmada (Paga)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions-section">
+          <button class="btn btn-danger" onclick="resetAllBookings()">
+            <i class="fa-solid fa-rotate-left"></i> Limpar Todas as Reservas
+          </button>
+          <button
+            class="btn"
+            onclick="exportBookingsJSON()"
+            style="
+              background: rgba(214, 175, 55, 0.1);
+              border-color: rgba(214, 175, 55, 0.2);
+              color: var(--color-gold);
+            "
+          >
+            <i class="fa-solid fa-download"></i> Exportar JSON
+          </button>
+          <button
+            class="btn"
+            onclick="triggerImportInput()"
+            style="
+              background: rgba(42, 82, 190, 0.15);
+              border-color: rgba(42, 82, 190, 0.25);
+              color: #89a8ff;
+            "
+          >
+            <i class="fa-solid fa-upload"></i> Importar JSON
+          </button>
+          <input
+            type="file"
+            id="import-json-file"
+            accept=".json"
+            style="display: none"
+            onchange="importBookingsJSON(event)"
+          />
+        </div>
+      </aside>
+
+      <main class="event-board">
+        <div class="board-header">
+          <div>
+            <h2 class="board-title">Mapa Oficial de Assentos</h2>
+            <span class="board-subtitle"
+              >Selecione um assento disponível para reservar ou passe o mouse
+              para ver detalhes.</span
+            >
+          </div>
+        </div>
+
+        <div class="arena-map">
+          <div class="stage-side">
+            <div class="stage-box">
+              <span class="stage-text">PALCO</span>
+            </div>
+
+            <div class="camarote-front">
+              <h4 class="camarote-front-title">Camarote Front A</h4>
+              <div class="front-seats-grid" id="grid-front-a"></div>
+            </div>
+
+            <div class="camarote-front">
+              <h4 class="camarote-front-title">Camarote Front B</h4>
+              <div class="front-seats-grid" id="grid-front-b"></div>
+            </div>
+          </div>
+
+          <div class="main-arena-grid">
+            <div class="camarote-gold-section">
+              <h4 class="gold-title">Camarote Gold</h4>
+              <div class="gold-seats-grid" id="grid-gold"></div>
+            </div>
+
+            <div
+              class="camarote-empresarial-section"
+              style="
+                background: rgba(139, 92, 246, 0.03);
+                border: 1px solid rgba(139, 92, 246, 0.1);
+                border-radius: 20px;
+                padding: 1.5rem;
+                position: relative;
+              "
+            >
+              <h4
+                class="purple-title"
+                style="
+                  font-size: 0.8rem;
+                  font-weight: 700;
+                  color: var(--color-purple);
+                  text-align: center;
+                  margin-bottom: 1.25rem;
+                  letter-spacing: 2px;
+                  text-transform: uppercase;
+                "
+              >
+                Camarote Empresarial
+              </h4>
+              <div
+                class="empresarial-seats-grid"
+                id="grid-empresarial"
+                style="
+                  display: grid;
+                  grid-template-columns: repeat(16, 1fr);
+                  gap: 8px;
+                  justify-items: center;
+                "
+              ></div>
+            </div>
+
+            <div class="arena-coberta-box">
+              <span class="arena-coberta-text">Arena Coberta</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="popover" id="seat-popover"></div>
+
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal">
+        <button class="modal-close" onclick="closeModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="modal-header">
+          <h3 class="modal-title" id="modal-title-text">Confirmar Reserva</h3>
+          <span class="modal-subtitle" id="modal-subtitle-text"
+            >Insira os dados do comprador para o Assento.</span
+          >
+        </div>
+
+        <form id="booking-form" onsubmit="confirmBooking(event)">
+          <input type="hidden" id="form-seat-id" />
+
+          <div class="form-group">
+            <label class="form-label" for="buyer-name">Nome Completo</label>
+            <input
+              class="form-input"
+              type="text"
+              id="buyer-name"
+              required
+              placeholder="Ex: João Silva"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="buyer-email">E-mail</label>
+            <input
+              class="form-input"
+              type="text"
+              id="buyer-email"
+              required
+              placeholder="Ex: Endereço completo ou e-mail"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="buyer-phone"
+              >Telefone / WhatsApp</label
+            >
+            <input
+              class="form-input"
+              type="tel"
+              id="buyer-phone"
+              required
+              placeholder="Ex: (14) 99999-9999"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="payment-method"
+              >Forma de Pagamento</label
+            >
+            <select
+              class="form-input"
+              id="payment-method"
+              required
+              style="background: #1e1d24; color: #ffffff"
+            >
+              <option value="" disabled selected>Selecione uma opção</option>
+              <option value="Pix">Pix</option>
+              <option value="Cartão de Crédito">Cartão de Crédito</option>
+              <option value="Cartão de Débito">Cartão de Débito</option>
+              <option value="Dinheiro">Dinheiro</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="buyer-notes"
+              >Observações
+              <span style="font-weight: normal; opacity: 0.6; font-size: 0.85em"
+                >(opcional)</span
+              ></label
+            >
+            <textarea
+              class="form-input"
+              id="buyer-notes"
+              rows="2"
+              placeholder="Ex: Necessita de acessibilidade, observações gerais..."
+              style="resize: none; font-family: var(--font-sans)"
+            ></textarea>
+          </div>
+
+          <div
+            class="form-group"
+            style="
+              flex-direction: row;
+              align-items: center;
+              gap: 0.75rem;
+              margin-top: 0.5rem;
+              margin-bottom: 1rem;
+            "
+          >
+            <input
+              type="checkbox"
+              id="buyer-paid"
+              style="
+                width: 20px;
+                height: 20px;
+                accent-color: var(--color-green);
+                cursor: pointer;
+              "
+            />
+            <label
+              class="form-label"
+              for="buyer-paid"
+              style="
+                margin-bottom: 0;
+                cursor: pointer;
+                color: #ffffff;
+                font-weight: 600;
+              "
+              >Reserva Paga (Confirmada)</label
+            >
+          </div>
+
+          <div
+            id="modal-actions"
+            style="
+              margin-top: 1.5rem;
+              display: flex;
+              flex-direction: column;
+              gap: 0.75rem;
+            "
+          >
+            <button
+              type="submit"
+              id="btn-submit-booking"
+              class="btn-submit"
+              style="margin-top: 0"
+            >
+              Finalizar Reserva
+            </button>
+            <button
+              type="button"
+              id="btn-delete-booking"
+              class="btn-danger-outline"
+              onclick="deleteBooking()"
+            >
+              Excluir Reserva
+            </button>
+            <button
+              type="button"
+              id="btn-cancel-booking"
+              class="btn-secondary"
+              onclick="closeModal()"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="toast success" id="toast-alert">
+      <i class="fa-solid fa-circle-check"></i>
+      <span id="toast-message">Reserva confirmada com sucesso!</span>
+    </div>
+
+    <script>
+      // Store bookings inside LocalStorage or in memory
+      let bookings =
+        JSON.parse(localStorage.getItem("facita_bookings_2026")) || {};
+
+      // Configuration details for sectors and seats
+      const config = {
+        goldCount: 144, // Number of Gold Seats (16 cols x 9 rows = 144)
+        empresarialCount: 16, // Number of Empresarial Seats (16 cols x 1 row = 16)
+        frontACount: 35, // Front Box A Seats (7 cols x 5 rows = 35)
+        frontBCount: 35, // Front Box B Seats (7 cols x 5 rows = 35)
+      };
+
+      const popover = document.getElementById("seat-popover");
+      const modal = document.getElementById("modal-overlay");
+      const toast = document.getElementById("toast-alert");
+      let activeSeatId = null;
+
+      // Initialize App
+      document.addEventListener("DOMContentLoaded", () => {
+        renderSeats();
+        updateStats();
+
+        // Safe backdrop dismissal (Rule 3.14)
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) {
+            closeModal();
+          }
+        });
+      });
+
+      // Predefined seat number sequences matching reference images
+      const goldSeats = [
+        // Row 1 (Top)
+        125, 126, 127, 128, 129, 130, 132, 133, 134, 135, 136, 138, 139, 140,
+        141, 142,
+        // Row 2
+        107, 108, 109, 110, 112, 113, 114, 115, 116, 117, 118, 120, 121, 122,
+        123, 124,
+        // Row 3
+        89, 90, 91, 92, 94, 95, 96, 97, 98, 100, 101, 102, 103, 104, 105, 106,
+        // Row 4
+        71, 72, 73, 74, 76, 77, 78, 79, 80, 81, 82, 84, 85, 86, 87, 88,
+        // Row 5
+        53, 54, 55, 56, 58, 59, 60, 61, 62, 63, 65, 66, 67, 68, 69, 70,
+        // Row 6
+        35, 36, 38, 39, 40, 41, 42, 44, 45, 46, 47, 48, 49, 50, 51, 52,
+        // Row 7
+        35, 36, 37, 38, 41, 42, 43, 44, 45, 46, 47, 28, 29, 30, 31, 32,
+        // Row 8
+        17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 29, 30, 31, 32, 33, 34,
+        // Row 9 (Bottom)
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+      ];
+
+      const empresarialSeats = [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+      ];
+
+      const frontASeats = [
+        40, 45, 50, 65, 60, 65, 70, 39, 43, 49, 54, 59, 64, 69, 35, 45, 48, 53,
+        63, 63, 68, 37, 47, 47, 52, 52, 67, 67, 36, 41, 48, 51, 66, 61, 61,
+      ];
+
+      const frontBSeats = [
+        5, 10, 15, 20, 25, 20, 35, 4, 9, 14, 16, 24, 27, 24, 3, 8, 12, 18, 23,
+        38, 33, 2, 7, 12, 17, 27, 27, 28, 1, 6, 11, 16, 22, 26, 31,
+      ];
+
+      // Generate Seat layout
+      function renderSeats() {
+        const gridGold = document.getElementById("grid-gold");
+        const gridEmpresarial = document.getElementById("grid-empresarial");
+        const gridFrontA = document.getElementById("grid-front-a");
+        const gridFrontB = document.getElementById("grid-front-b");
+
+        // 1. Generate Gold Seats (Index-based unique IDs)
+        gridGold.innerHTML = "";
+        goldSeats.forEach((num, idx) => {
+          const seatId = `gold-${idx}`;
+          gridGold.appendChild(createSeatElement(seatId, num, "gold"));
+        });
+
+        // 2. Generate Empresarial Seats (Index-based unique IDs)
+        gridEmpresarial.innerHTML = "";
+        empresarialSeats.forEach((num, idx) => {
+          const seatId = `empresarial-${idx}`;
+          gridEmpresarial.appendChild(createSeatElement(seatId, num, "purple"));
+        });
+
+        // 3. Generate Front A Seats (Index-based unique IDs)
+        gridFrontA.innerHTML = "";
+        frontASeats.forEach((num, idx) => {
+          const seatId = `fronta-${idx}`;
+          gridFrontA.appendChild(createSeatElement(seatId, num, "blue"));
+        });
+
+        // 4. Generate Front B Seats (Index-based unique IDs)
+        gridFrontB.innerHTML = "";
+        frontBSeats.forEach((num, idx) => {
+          const seatId = `frontb-${idx}`;
+          gridFrontB.appendChild(createSeatElement(seatId, num, "blue"));
+        });
+      }
+
+      // Helper to construct individual seat elements with event handling
+      function createSeatElement(seatId, number, type) {
+        const seat = document.createElement("div");
+        seat.className = `seat type-${type}`;
+        seat.dataset.id = seatId;
+        seat.dataset.number = number;
+        seat.dataset.type = type;
+        seat.innerText = number.toString().padStart(2, "0");
+
+        // Check if already booked
+        if (bookings[seatId]) {
+          if (bookings[seatId].paid) {
+            seat.classList.add("status-paid");
+          } else {
+            seat.classList.add("status-booked");
+          }
+        }
+
+        // Click Handler
+        seat.addEventListener("click", () => handleSeatClick(seatId, seat));
+
+        // Hover handlers for Popover preview
+        seat.addEventListener("mouseenter", (e) => showPopover(e, seatId));
+        seat.addEventListener("mouseleave", hidePopover);
+
+        return seat;
+      }
+
+      // Handle seat click: Open modal for reservation or viewing details
+      function handleSeatClick(seatId, element) {
+        activeSeatId = seatId;
+        document.getElementById("form-seat-id").value = seatId;
+
+        // Highlight selected seat visually
+        document
+          .querySelectorAll(".seat")
+          .forEach((s) => s.classList.remove("status-selected"));
+        element.classList.add("status-selected");
+
+        const displayLabel = formatSeatLabel(seatId);
+
+        // Inputs should always remain editable so user can modify info
+        document.getElementById("buyer-name").readOnly = false;
+        document.getElementById("buyer-email").readOnly = false;
+        document.getElementById("buyer-phone").readOnly = false;
+        document.getElementById("payment-method").disabled = false;
+        document.getElementById("buyer-notes").readOnly = false;
+        document.getElementById("buyer-paid").disabled = false;
+
+        if (bookings[seatId]) {
+          // VIEW / EDIT MODE
+          const info = bookings[seatId];
+          document.getElementById("modal-title-text").innerText =
+            "Detalhes da Reserva";
+          document.getElementById("modal-subtitle-text").innerText =
+            `Visualizando informações do ${displayLabel}.`;
+
+          // Populate fields
+          document.getElementById("buyer-name").value = info.name;
+          document.getElementById("buyer-email").value = info.email;
+          document.getElementById("buyer-phone").value = info.phone;
+          document.getElementById("payment-method").value = info.payment;
+          document.getElementById("buyer-notes").value = info.notes;
+          document.getElementById("buyer-paid").checked = !!info.paid;
+
+          // Adjust buttons (Show "Salvar Alterações" instead of "Finalizar Reserva")
+          document.getElementById("btn-submit-booking").innerText =
+            "Salvar Alterações";
+          document.getElementById("btn-submit-booking").style.display = "block";
+          document.getElementById("btn-delete-booking").style.display = "block";
+        } else {
+          // BOOKING MODE
+          document.getElementById("modal-title-text").innerText =
+            "Confirmar Reserva";
+          document.getElementById("modal-subtitle-text").innerText =
+            `Você selecionou o ${displayLabel}. Por favor preencha os dados do participante.`;
+
+          // Clear fields
+          document.getElementById("buyer-name").value = "";
+          document.getElementById("buyer-email").value = "";
+          document.getElementById("buyer-phone").value = "";
+          document.getElementById("payment-method").value = "";
+          document.getElementById("buyer-notes").value = "";
+          document.getElementById("buyer-paid").checked = false;
+
+          // Adjust buttons
+          document.getElementById("btn-submit-booking").innerText =
+            "Finalizar Reserva";
+          document.getElementById("btn-submit-booking").style.display = "block";
+          document.getElementById("btn-delete-booking").style.display = "none";
+        }
+
+        openModal();
+      }
+
+      // Helper to format nice visual label using actual displayed seat number
+      function formatSeatLabel(seatId) {
+        const parts = seatId.split("-");
+        const sectorName =
+          parts[0] === "gold"
+            ? "Camarote Gold"
+            : parts[0] === "empresarial"
+              ? "Camarote Empresarial"
+              : parts[0] === "fronta"
+                ? "Camarote Front A"
+                : "Camarote Front B";
+        const element = document.querySelector(`.seat[data-id="${seatId}"]`);
+        const numText = element ? element.innerText : parts[1].padStart(2, "0");
+        return `${sectorName} - Assento ${numText}`;
+      }
+
+      // Submit registration & Book seat
+      function confirmBooking(event) {
+        event.preventDefault();
+
+        const seatId = document.getElementById("form-seat-id").value;
+        const name = document.getElementById("buyer-name").value.trim();
+        const email = document.getElementById("buyer-email").value.trim();
+        const phone = document.getElementById("buyer-phone").value.trim();
+        const payment = document.getElementById("payment-method").value;
+        const notes = document.getElementById("buyer-notes").value.trim();
+        const paid = document.getElementById("buyer-paid").checked;
+
+        if (!name || !email || !phone || !payment) return;
+
+        const isEdit = !!bookings[seatId];
+
+        // Save record
+        bookings[seatId] = {
+          name,
+          email,
+          phone,
+          payment,
+          notes: notes || "Nenhuma",
+          paid: paid,
+          timestamp: isEdit
+            ? bookings[seatId].timestamp
+            : new Date().toLocaleString("pt-BR"),
+          ticketCode: isEdit
+            ? bookings[seatId].ticketCode
+            : "FAC-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
+        };
+
+        // Save to LocalStorage
+        localStorage.setItem("facita_bookings_2026", JSON.stringify(bookings));
+
+        // Visual feedback update
+        const seatElement = document.querySelector(
+          `.seat[data-id="${seatId}"]`,
+        );
+        if (seatElement) {
+          seatElement.className = `seat type-${seatElement.dataset.type}`; // Reset status classes
+          if (paid) {
+            seatElement.classList.add("status-paid");
+          } else {
+            seatElement.classList.add("status-booked");
+          }
+        }
+
+        closeModal();
+        updateStats();
+        showToast(
+          isEdit
+            ? "Alterações salvas com sucesso!"
+            : `Assento reservado com sucesso para ${name}!`,
+          "success",
+        );
+
+        // Reset form
+        document.getElementById("booking-form").reset();
+      }
+
+      // Exclude/Delete individual seat booking
+      function deleteBooking() {
+        const seatId = activeSeatId;
+        if (!seatId || !bookings[seatId]) return;
+
+        if (
+          confirm(
+            `Tem certeza de que deseja liberar o assento selecionado e excluir a reserva?`,
+          )
+        ) {
+          delete bookings[seatId];
+          localStorage.setItem(
+            "facita_bookings_2026",
+            JSON.stringify(bookings),
+          );
+
+          // Visual feedback update
+          const seatElement = document.querySelector(
+            `.seat[data-id="${seatId}"]`,
+          );
+          if (seatElement) {
+            seatElement.className = `seat type-${seatElement.dataset.type}`;
+          }
+
+          closeModal();
+          updateStats();
+          showToast(
+            "Reserva excluída com sucesso! O assento está disponível novamente.",
+            "info",
+          );
+        }
+      }
+
+      // Reset all reservations
+      function resetAllBookings() {
+        if (
+          confirm(
+            "Tem certeza de que deseja liberar todos os assentos? Esta ação não pode ser desfeita.",
+          )
+        ) {
+          bookings = {};
+          localStorage.removeItem("facita_bookings_2026");
+          renderSeats();
+          updateStats();
+          showToast("Todos os assentos estão disponíveis novamente.", "info");
+        }
+      }
+
+      // JSON Persistence: Export Bookings to File
+      function exportBookingsJSON() {
+        if (Object.keys(bookings).length === 0) {
+          showToast("Não existem reservas registradas para exportar.", "info");
+          return;
+        }
+        const dataStr =
+          "data:text/json;charset=utf-8," +
+          encodeURIComponent(JSON.stringify(bookings, null, 4));
+        const downloadAnchor = document.createElement("a");
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "reservas_facita_2026.json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+        showToast("Reservas exportadas com sucesso!", "success");
+      }
+
+      // JSON Persistence: Trigger hidden file input
+      function triggerImportInput() {
+        document.getElementById("import-json-file").click();
+      }
+
+      // JSON Persistence: Import Bookings from File
+      function importBookingsJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const importedData = JSON.parse(e.target.result);
+
+            // Basic structural validation check
+            if (
+              typeof importedData !== "object" ||
+              Array.isArray(importedData)
+            ) {
+              throw new Error("Formato JSON inválido.");
+            }
+
+            if (
+              confirm("Deseja substituir as reservas atuais pelas importadas?")
+            ) {
+              bookings = importedData;
+              localStorage.setItem(
+                "facita_bookings_2026",
+                JSON.stringify(bookings),
+              );
+              renderSeats();
+              updateStats();
+              showToast(
+                "Reservas importadas e atualizadas com sucesso!",
+                "success",
+              );
+            }
+          } catch (err) {
+            alert(
+              "Erro ao ler o arquivo JSON. Certifique-se de que ele está formatado corretamente.",
+            );
+          }
+          // Reset file input value so same file can be uploaded again if needed
+          event.target.value = "";
+        };
+        reader.readAsText(file);
+      }
+
+      // Update real-time stats panel
+      function updateStats() {
+        const total =
+          config.goldCount +
+          config.empresarialCount +
+          config.frontACount +
+          config.frontBCount;
+        const booked = Object.keys(bookings).length;
+        const available = total - booked;
+        const percentage = ((booked / total) * 100).toFixed(0);
+
+        document.getElementById("stat-total").innerText = total;
+        document.getElementById("stat-available").innerText = available;
+        document.getElementById("stat-booked").innerText = booked;
+        document.getElementById("stat-occupancy").innerText = `${percentage}%`;
+      }
+
+      // Popover Logic (Details on Hover)
+      function showPopover(e, seatId) {
+        const info = bookings[seatId];
+        if (!info) return; // Only show popover for booked seats
+
+        const seatElement = e.currentTarget;
+        const rect = seatElement.getBoundingClientRect();
+
+        // Populate Popover
+        const formattedLabel = formatSeatLabel(seatId);
+        const badgeClass = seatId.includes("gold")
+          ? "gold"
+          : seatId.includes("empresarial")
+            ? "purple"
+            : "blue";
+        const badgeLabel = seatId.includes("gold")
+          ? "GOLD"
+          : seatId.includes("empresarial")
+            ? "EMPRESARIAL"
+            : "FRONT";
+
+        popover.innerHTML = `
+              <div class="popover-header">
+                  <span class="popover-title">${info.name}</span>
+                  <span class="popover-seat-badge ${badgeClass}">${badgeLabel}</span>
+              </div>
+              <div class="popover-detail">
+                  <i class="fa-solid fa-chair"></i>
+                  <span>${formattedLabel}</span>
+              </div>
+              <div class="popover-detail">
+                  <i class="fa-solid fa-envelope"></i>
+                  <span style="white-space: pre-wrap; overflow-wrap: break-word; max-width: 200px;">${info.email}</span>
+              </div>
+              <div class="popover-detail">
+                  <i class="fa-solid fa-phone"></i>
+                  <span>${info.phone}</span>
+              </div>
+              <div class="popover-detail">
+                  <i class="fa-solid fa-credit-card"></i>
+                  <span>Pagamento: ${info.payment}</span>
+              </div>
+              <div class="popover-detail">
+                  <i class="fa-solid fa-circle-dollar-to-slot"></i>
+                  <span>Status: ${info.paid ? '<strong style="color: var(--color-green);">PAGO</strong>' : '<strong style="color: #F97316;">PENDENTE</strong>'}</span>
+              </div>
+              <div class="popover-detail">
+                  <i class="fa-solid fa-comment-dots"></i>
+                  <span style="white-space: pre-wrap; overflow-wrap: break-word; max-width: 200px;">Obs: ${info.notes}</span>
+              </div>
+              <div class="popover-detail">
+                  <i class="fa-solid fa-ticket"></i>
+                  <span>Cód: ${info.ticketCode}</span>
+              </div>
+              <div class="popover-detail" style="font-size: 0.7rem; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 4px;">
+                  <i class="fa-solid fa-clock"></i>
+                  <span>${info.timestamp}</span>
+              </div>
+          `;
+
+        // Position & display
+        popover.style.left = `${window.scrollX + rect.left + rect.width / 2 - 125}px`;
+        popover.style.top = `${window.scrollY + rect.top - popover.offsetHeight - 15}px`;
+        popover.classList.add("visible");
+      }
+
+      function hidePopover() {
+        popover.classList.remove("visible");
+      }
+
+      // Modal Management
+      function openModal() {
+        modal.classList.add("active");
+      }
+
+      function closeModal() {
+        modal.classList.remove("active");
+        const selectedSeat = document.querySelector(".seat.status-selected");
+        if (selectedSeat) {
+          selectedSeat.classList.remove("status-selected");
+        }
+      }
+
+      // Toast Messages
+      function showToast(message, type = "success") {
+        const msgEl = document.getElementById("toast-message");
+        msgEl.innerText = message;
+
+        // Set styles based on type
+        toast.className = `toast show ${type}`;
+        const icon = toast.querySelector("i");
+
+        if (type === "success") {
+          icon.className = "fa-solid fa-circle-check";
+        } else {
+          icon.className = "fa-solid fa-circle-info";
+        }
+
+        setTimeout(() => {
+          toast.classList.remove("show");
+        }, 3500);
+      }
+    </script>
+  </body>
+</html>
