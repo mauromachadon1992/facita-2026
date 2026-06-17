@@ -470,7 +470,7 @@
         text-transform: uppercase;
       }
 
-      @media (max-width: 800px) {
+      @media (max-width: 1250px) {
         .gold-seats-grid,
         .empresarial-seats-grid {
           grid-template-columns: repeat(8, 1fr);
@@ -629,6 +629,20 @@
         100% {
           transform: scale(1.1);
         }
+      }
+
+      .seat[draggable="true"] {
+        cursor: grab;
+      }
+      .seat.dragging {
+        opacity: 0.5;
+        cursor: grabbing;
+      }
+      .seat.drag-over {
+        border-style: dashed !important;
+        transform: scale(1.15);
+        background: rgba(6, 182, 212, 0.2) !important;
+        border-color: var(--color-cyan) !important;
       }
 
       /* Popover Styling (Custom Hover tooltip) */
@@ -1408,7 +1422,14 @@
           } else {
             seat.classList.add("status-booked");
           }
+          seat.setAttribute("draggable", "true");
         }
+
+        // Drag and Drop event listeners
+        seat.addEventListener("dragstart", handleDragStart);
+        seat.addEventListener("dragover", handleDragOver);
+        seat.addEventListener("dragleave", handleDragLeave);
+        seat.addEventListener("drop", handleDrop);
 
         // Click Handler
         seat.addEventListener("click", () => handleSeatClick(seatId, seat));
@@ -1418,6 +1439,89 @@
         seat.addEventListener("mouseleave", hidePopover);
 
         return seat;
+      }
+
+      function handleDragStart(e) {
+        const seatId = e.target.dataset.id;
+        if (!bookings[seatId]) {
+          e.preventDefault();
+          return;
+        }
+        e.dataTransfer.setData("text/plain", seatId);
+        e.target.classList.add("dragging");
+      }
+
+      function handleDragOver(e) {
+        e.preventDefault();
+        const seat = e.currentTarget;
+        if (!bookings[seat.dataset.id]) {
+          seat.classList.add("drag-over");
+        }
+      }
+
+      function handleDragLeave(e) {
+        e.currentTarget.classList.remove("drag-over");
+      }
+
+      async function handleDrop(e) {
+        e.preventDefault();
+        const targetSeat = e.currentTarget;
+        targetSeat.classList.remove("drag-over");
+
+        const targetSeatId = targetSeat.dataset.id;
+        const sourceSeatId = e.dataTransfer.getData("text/plain");
+
+        if (!sourceSeatId || sourceSeatId === targetSeatId) return;
+
+        // Verifica se assento de destino está livre
+        if (bookings[targetSeatId]) {
+          showToast("Este assento já está ocupado!", "info");
+          return;
+        }
+
+        const bookingData = bookings[sourceSeatId];
+        if (!bookingData) return;
+
+        const sourceLabel = formatSeatLabel(sourceSeatId);
+        const targetLabel = formatSeatLabel(targetSeatId);
+
+        if (confirm(`Deseja transferir a reserva de ${bookingData.name} do ${sourceLabel} para o ${targetLabel}?`)) {
+          try {
+            // Insere novo no Supabase
+            const { error: insertError } = await supabaseClient.from("bookings").upsert({
+              seat_id: targetSeatId,
+              name: bookingData.name,
+              email: bookingData.email,
+              phone: bookingData.phone,
+              payment: bookingData.payment,
+              notes: bookingData.notes,
+              paid: bookingData.paid,
+              timestamp: bookingData.timestamp,
+              ticket_code: bookingData.ticketCode,
+            });
+
+            if (insertError) throw insertError;
+
+            // Remove antigo no Supabase
+            const { error: deleteError } = await supabaseClient
+              .from("bookings")
+              .delete()
+              .eq("seat_id", sourceSeatId);
+
+            if (deleteError) throw deleteError;
+
+            // Transfere na memória local
+            bookings[targetSeatId] = bookingData;
+            delete bookings[sourceSeatId];
+
+            renderSeats();
+            updateStats();
+            showToast("Reserva transferida online com sucesso!", "success");
+          } catch (err) {
+            console.error("Erro ao transferir reserva no Supabase:", err);
+            alert("Erro ao transferir reserva: " + err.message);
+          }
+        }
       }
 
       // Handle seat click: Open modal for reservation or viewing details
