@@ -17,6 +17,8 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
       /* Design Tokens & Theme Variables */
       :root {
@@ -1208,9 +1210,17 @@
     </div>
 
     <script>
-      // Store bookings inside LocalStorage or in memory
-      let bookings =
-        JSON.parse(localStorage.getItem("facita_bookings_2026")) || {};
+      const SUPABASE_URL = "https://db.qtsddianbbfshetwzeao.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "sb_publishable_Hm1IOuxo0JKmMbG4cLo1lw_o8vD5hXp";
+
+      const supabaseClient = supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY,
+      );
+
+      // Objeto de persistência global na memória da aplicação
+      let bookings = {};
 
       // Configuration details for sectors and seats
       const config = {
@@ -1226,9 +1236,9 @@
       let activeSeatId = null;
 
       // Initialize App
-      document.addEventListener("DOMContentLoaded", () => {
+      document.addEventListener("DOMContentLoaded", async () => {
         renderSeats();
-        updateStats();
+        await syncFromSupabase();
 
         // Safe backdrop dismissal (Rule 3.14)
         modal.addEventListener("click", (e) => {
@@ -1237,6 +1247,39 @@
           }
         });
       });
+
+      // Busca dados de todas as reservas direto no Supabase
+      async function syncFromSupabase() {
+        try {
+          const { data, error } = await supabaseClient
+            .from("bookings")
+            .select("*");
+
+          if (error) throw error;
+
+          bookings = {};
+          if (data) {
+            data.forEach((row) => {
+              bookings[row.seat_id] = {
+                name: row.name,
+                email: row.email,
+                phone: row.phone,
+                payment: row.payment,
+                notes: row.notes,
+                paid: row.paid,
+                timestamp: row.timestamp,
+                ticketCode: row.ticket_code,
+              };
+            });
+          }
+
+          renderSeats();
+          updateStats();
+        } catch (err) {
+          console.error("Erro ao sincronizar com banco de dados:", err.message);
+          showToast("Erro ao carregar dados do servidor.", "info");
+        }
+      }
 
       // Predefined seat number sequences matching reference images
       const goldSeats = [
@@ -1424,7 +1467,7 @@
       }
 
       // Submit registration & Book seat
-      function confirmBooking(event) {
+      async function confirmBooking(event) {
         event.preventDefault();
 
         const seatId = document.getElementById("form-seat-id").value;
@@ -1438,54 +1481,72 @@
         if (!name || !email || !phone || !payment) return;
 
         const isEdit = !!bookings[seatId];
+        const timestamp = isEdit
+          ? bookings[seatId].timestamp
+          : new Date().toLocaleString("pt-BR");
+        const ticketCode = isEdit
+          ? bookings[seatId].ticketCode
+          : "FAC-" + Math.random().toString(36).substr(2, 9).toUpperCase();
 
-        // Save record
-        bookings[seatId] = {
-          name,
-          email,
-          phone,
-          payment,
-          notes: notes || "Nenhuma",
-          paid: paid,
-          timestamp: isEdit
-            ? bookings[seatId].timestamp
-            : new Date().toLocaleString("pt-BR"),
-          ticketCode: isEdit
-            ? bookings[seatId].ticketCode
-            : "FAC-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
-        };
+        try {
+          const { error } = await supabaseClient.from("bookings").upsert({
+            seat_id: seatId,
+            name,
+            email,
+            phone,
+            payment,
+            notes: notes || "Nenhuma",
+            paid,
+            timestamp,
+            ticket_code: ticketCode,
+          });
 
-        // Save to LocalStorage
-        localStorage.setItem("facita_bookings_2026", JSON.stringify(bookings));
+          if (error) throw error;
 
-        // Visual feedback update
-        const seatElement = document.querySelector(
-          `.seat[data-id="${seatId}"]`,
-        );
-        if (seatElement) {
-          seatElement.className = `seat type-${seatElement.dataset.type}`; // Reset status classes
-          if (paid) {
-            seatElement.classList.add("status-paid");
-          } else {
-            seatElement.classList.add("status-booked");
+          // Save record in memory
+          bookings[seatId] = {
+            name,
+            email,
+            phone,
+            payment,
+            notes: notes || "Nenhuma",
+            paid: paid,
+            timestamp,
+            ticketCode,
+          };
+
+          // Visual feedback update
+          const seatElement = document.querySelector(
+            `.seat[data-id="${seatId}"]`,
+          );
+          if (seatElement) {
+            seatElement.className = `seat type-${seatElement.dataset.type}`; // Reset status classes
+            if (paid) {
+              seatElement.classList.add("status-paid");
+            } else {
+              seatElement.classList.add("status-booked");
+            }
           }
+
+          closeModal();
+          updateStats();
+          showToast(
+            isEdit
+              ? "Alterações salvas com sucesso online!"
+              : `Assento reservado online com sucesso para ${name}!`,
+            "success",
+          );
+
+          // Reset form
+          document.getElementById("booking-form").reset();
+        } catch (err) {
+          console.error(err);
+          alert("Erro ao gravar dados no Supabase: " + err.message);
         }
-
-        closeModal();
-        updateStats();
-        showToast(
-          isEdit
-            ? "Alterações salvas com sucesso!"
-            : `Assento reservado com sucesso para ${name}!`,
-          "success",
-        );
-
-        // Reset form
-        document.getElementById("booking-form").reset();
       }
 
       // Exclude/Delete individual seat booking
-      function deleteBooking() {
+      async function deleteBooking() {
         const seatId = activeSeatId;
         if (!seatId || !bookings[seatId]) return;
 
@@ -1494,41 +1555,57 @@
             `Tem certeza de que deseja liberar o assento selecionado e excluir a reserva?`,
           )
         ) {
-          delete bookings[seatId];
-          localStorage.setItem(
-            "facita_bookings_2026",
-            JSON.stringify(bookings),
-          );
+          try {
+            const { error } = await supabaseClient
+              .from("bookings")
+              .delete()
+              .eq("seat_id", seatId);
 
-          // Visual feedback update
-          const seatElement = document.querySelector(
-            `.seat[data-id="${seatId}"]`,
-          );
-          if (seatElement) {
-            seatElement.className = `seat type-${seatElement.dataset.type}`;
+            if (error) throw error;
+
+            delete bookings[seatId];
+
+            // Visual feedback update
+            const seatElement = document.querySelector(
+              `.seat[data-id="${seatId}"]`,
+            );
+            if (seatElement) {
+              seatElement.className = `seat type-${seatElement.dataset.type}`;
+            }
+
+            closeModal();
+            updateStats();
+            showToast("Reserva excluída com sucesso!", "info");
+          } catch (err) {
+            console.error(err);
+            alert("Erro ao deletar registro no Supabase: " + err.message);
           }
-
-          closeModal();
-          updateStats();
-          showToast(
-            "Reserva excluída com sucesso! O assento está disponível novamente.",
-            "info",
-          );
         }
       }
 
       // Reset all reservations
-      function resetAllBookings() {
+      async function resetAllBookings() {
         if (
           confirm(
-            "Tem certeza de que deseja liberar todos os assentos? Esta ação não pode ser desfeita.",
+            "Tem certeza de que deseja liberar todos os assentos online do servidor? Esta ação apagará permanentemente todos os registros do banco de dados.",
           )
         ) {
-          bookings = {};
-          localStorage.removeItem("facita_bookings_2026");
-          renderSeats();
-          updateStats();
-          showToast("Todos os assentos estão disponíveis novamente.", "info");
+          try {
+            const { error } = await supabaseClient
+              .from("bookings")
+              .delete()
+              .neq("seat_id", "tabela-vazia-placeholder");
+
+            if (error) throw error;
+
+            bookings = {};
+            renderSeats();
+            updateStats();
+            showToast("Todas as reservas online foram limpas.", "info");
+          } catch (err) {
+            console.error(err);
+            alert("Erro ao limpar banco remoto: " + err.message);
+          }
         }
       }
 
@@ -1561,11 +1638,10 @@
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = function (e) {
+        reader.onload = async function (e) {
           try {
             const importedData = JSON.parse(e.target.result);
 
-            // Basic structural validation check
             if (
               typeof importedData !== "object" ||
               Array.isArray(importedData)
@@ -1574,24 +1650,44 @@
             }
 
             if (
-              confirm("Deseja substituir as reservas atuais pelas importadas?")
+              confirm(
+                "Deseja importar os dados deste JSON e integrá-los ao banco de dados online?",
+              )
             ) {
-              bookings = importedData;
-              localStorage.setItem(
-                "facita_bookings_2026",
-                JSON.stringify(bookings),
-              );
-              renderSeats();
-              updateStats();
+              const payload = Object.keys(importedData).map((key) => {
+                const item = importedData[key];
+                return {
+                  seat_id: key,
+                  name: item.name,
+                  email: item.email,
+                  phone: item.phone,
+                  payment: item.payment,
+                  notes: item.notes || "Nenhuma",
+                  paid: !!item.paid,
+                  timestamp:
+                    item.timestamp || new Date().toLocaleString("pt-BR"),
+                  ticket_code:
+                    item.ticketCode ||
+                    "FAC-" +
+                      Math.random().toString(36).substr(2, 9).toUpperCase(),
+                };
+              });
+
+              const { error } = await supabaseClient
+                .from("bookings")
+                .upsert(payload);
+
+              if (error) throw error;
+
+              await syncFromSupabase();
               showToast(
-                "Reservas importadas e atualizadas com sucesso!",
+                "Reservas importadas e atualizadas com sucesso online!",
                 "success",
               );
             }
           } catch (err) {
-            alert(
-              "Erro ao ler o arquivo JSON. Certifique-se de que ele está formatado corretamente.",
-            );
+            console.error(err);
+            alert("Erro ao ler ou injetar o arquivo JSON no banco de dados.");
           }
           // Reset file input value so same file can be uploaded again if needed
           event.target.value = "";
